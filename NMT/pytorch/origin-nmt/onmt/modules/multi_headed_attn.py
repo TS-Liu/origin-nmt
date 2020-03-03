@@ -450,8 +450,8 @@ class SelfMultiHeadedAttention(nn.Module):
 
         # Return one attn
         top_attn = attn \
-            .view(batch_size, head_count,
-                  query_len, key_len)[:, 0, :, :] \
+            .view(batch_size, -1,
+                  query_len, key_len)[:, :, :, :] \
             .contiguous()
 
         # file=open('txt','a')
