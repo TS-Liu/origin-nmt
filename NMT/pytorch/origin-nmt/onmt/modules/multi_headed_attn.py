@@ -287,7 +287,7 @@ class SelfMultiHeadedAttention(nn.Module):
         self.dim_per_head = model_dim // head_count
         self.model_dim = model_dim
 
-        super(MultiHeadedAttention, self).__init__()
+        super(SelfMultiHeadedAttention, self).__init__()
         self.head_count = head_count
 
         self.linear_keys = nn.Linear(model_dim,
