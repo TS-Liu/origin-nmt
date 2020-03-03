@@ -2,10 +2,12 @@
 Implementation of "Attention is All You Need"
 """
 
+import torch
 import torch.nn as nn
 
 from onmt.encoders.encoder import EncoderBase
 from onmt.modules import MultiHeadedAttention
+from onmt.modules import SelfMultiHeadedAttention
 from onmt.modules.position_ffn import PositionwiseFeedForward
 
 
@@ -29,8 +31,12 @@ class TransformerEncoderLayer(nn.Module):
         self.self_attn = MultiHeadedAttention(
             heads, d_model, dropout=dropout,
             max_relative_positions=max_relative_positions)
+        self.self_attn2 = SelfMultiHeadedAttention(
+            heads, d_model, dropout=dropout,
+            max_relative_positions=max_relative_positions)
         self.feed_forward = PositionwiseFeedForward(d_model, d_ff, dropout)
         self.layer_norm = nn.LayerNorm(d_model, eps=1e-6)
+        self.layer_norm2 = nn.LayerNorm(d_model, eps=1e-6)
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, inputs, mask):
@@ -47,7 +53,13 @@ class TransformerEncoderLayer(nn.Module):
         input_norm = self.layer_norm(inputs)
         context, attn = self.self_attn(input_norm, input_norm, input_norm,
                                     mask=mask, type="self")
-        out = self.dropout(context) + inputs
+        mid = self.dropout(context) + inputs
+
+        input_norm2 = self.layer_norm2(inputs)
+        context2, attn2 = self.self_attn2(input_norm2, input_norm2, input_norm2, type="self")
+        mid2 = self.dropout(context2) + inputs
+
+        out = mid + mid2
 
         # batch_size, head_count, query_len, key_len = attn.size()
 
